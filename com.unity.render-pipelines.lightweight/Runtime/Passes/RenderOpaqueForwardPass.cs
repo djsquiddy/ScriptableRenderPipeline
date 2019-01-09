@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             using (new ProfilingSample(cmd, k_RenderOpaquesTag))
             {
                 // When ClearFlag.None that means this is not the first render pass to write to camera target.
-                // In that case we set loapOp for both color and depth as RenderBufferLoadAction.Load
+                // In that case we set loadOp for both color and depth as RenderBufferLoadAction.Load
                 RenderBufferLoadAction loadOp = clearFlag != ClearFlag.None ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
                 RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;
 
