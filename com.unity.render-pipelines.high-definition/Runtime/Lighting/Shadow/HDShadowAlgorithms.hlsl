@@ -48,8 +48,8 @@ float4 EvalShadow_WorldToShadow(HDShadowData sd, float3 positionWS, bool perspPr
 #else
 
     // Note: shadowmaps are generated only once for all eyes from the combined center view (original camera matrix)
-    // For camera-relative code to work in stereo, we need to translate from eye-relative to camera-relative.
-    ApplyCameraRelativeStereoOffset(positionWS);
+    // For camera-relative code to work in stereo, we need to translate from eye-relative to camera-relative
+    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
 
     if(perspProj)
     {
@@ -290,11 +290,13 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
 
     HDDirectionalShadowData dsd = shadowContext.directionalShadowData;
 
+    // For camera-relative shadow code to work in stereo, we need to translate from eye-relative to camera-relative
+    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
+
     // find the current cascade
     for (; i < _CascadeShadowCount; i++)
     {
         float4  sphere  = dsd.sphereCascades[i];
-        ApplyCameraRelativeStereoOffset(sphere.xyz);
                 wposDir = -sphere.xyz + positionWS;
         float   distSq  = dot(wposDir, wposDir);
         relDistance = distSq / sphere.w;

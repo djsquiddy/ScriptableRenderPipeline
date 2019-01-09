@@ -255,18 +255,22 @@ uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
     }
 }
 
-LightData FetchLight(uint start, uint i)
-{
-    int j = FetchIndex(start, i);
-
-    return _LightDatas[j];
-}
-
 LightData FetchLight(uint index)
 {
-    return _LightDatas[index];
+    LightData lightData = _LightDatas[index];
+
+    // For camera-relative code to work in stereo, we need to translate position to be eye-relative
+    lightData.positionRWS =  StereoCameraRelativeCenterToEye(lightData.positionRWS);
+
+    return lightData;
 }
 
+LightData FetchLight(uint start, uint i)
+{
+    uint j = FetchIndex(start, i);
+
+    return FetchLight(j);
+}
 
 EnvLightData FetchEnvLight(uint start, uint i)
 {

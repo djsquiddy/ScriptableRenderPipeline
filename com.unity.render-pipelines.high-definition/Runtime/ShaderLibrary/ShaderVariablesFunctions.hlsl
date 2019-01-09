@@ -144,21 +144,26 @@ float2 TexCoordStereoOffset(float2 texCoord)
 {
 #if defined(UNITY_SINGLE_PASS_STEREO)
     return texCoord + float2(unity_StereoEyeIndex * _ScreenSize.x, 0.0);
-#endif
+#else
     return texCoord;
-}
-
-void ApplyCameraRelativeStereoOffset(inout float3 pos)
-{
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
-    pos += _WorldSpaceCameraPosEyeOffset;
 #endif
 }
 
-void ApplyCameraRelativeStereoOffset_inv(inout float3 pos)
+float3 StereoCameraRelativeEyeToCenter(float3 pos)
 {
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
-    pos -= _WorldSpaceCameraPosEyeOffset;
+#if defined(USING_STEREO_MATRICES) && (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    return pos + _WorldSpaceCameraPosEyeOffset;
+#else
+    return pos;
+#endif
+}
+
+float3 StereoCameraRelativeCenterToEye(float3 pos)
+{
+#if defined(USING_STEREO_MATRICES) && (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    return pos - _WorldSpaceCameraPosEyeOffset;
+#else
+    return pos;
 #endif
 }
 

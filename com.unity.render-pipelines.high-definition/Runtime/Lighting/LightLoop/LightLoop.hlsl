@@ -86,7 +86,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         if (_DirectionalShadowIndex >= 0)
         {
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
-            ApplyCameraRelativeStereoOffset(light.positionRWS);
 
             // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
             // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
@@ -132,7 +131,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         for (i = 0; i < _DirectionalLightCount; ++i)
         {
             DirectionalLightData light = _DirectionalLightDatas[i];
-            ApplyCameraRelativeStereoOffset(light.positionRWS);
 
             if (IsMatchingLightLayer(light.lightLayers, builtinData.renderingLayers))
             {
@@ -197,7 +195,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             s_lightIdx = WaveReadLaneFirst(s_lightIdx);
 #endif
             LightData s_lightData = FetchLight(s_lightIdx);
-            ApplyCameraRelativeStereoOffset_inv(s_lightData.positionRWS);
 
             // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
             // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
