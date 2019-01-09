@@ -96,6 +96,27 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             ClearFlag clearFlag = ScriptableRenderer.GetCameraClearFlag(renderingData.cameraData.camera);
             shadowDescriptor.dimension = TextureDimension.Tex2D;
 
+            bool requiresRenderToTexture = ScriptableRenderer.RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor)
+                                           || m_BeforeRenderPasses.Count != 0;
+
+            RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
+            RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
+
+            if (requiresRenderToTexture)
+            {
+                colorHandle = ColorAttachment;
+                depthHandle = DepthAttachment;
+
+                var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
+                m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
+                renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
+            }
+
+            foreach (var pass in m_BeforeRenderPasses)
+            {
+                renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle, clearFlag));
+            }
+
             bool mainLightShadows = false;
             if (renderingData.shadowData.supportsMainLightShadows)
             {
@@ -120,22 +141,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
 
-            bool requiresRenderToTexture = ScriptableRenderer.RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor)
-                                           || m_BeforeRenderPasses.Count != 0;
-
-            RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
-            RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
-
-            if (requiresRenderToTexture)
-            {
-                colorHandle = ColorAttachment;
-                depthHandle = DepthAttachment;
-
-                var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
-                m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
-                renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
-            }
-
             if (requiresDepthPrepass)
             {
                 m_DepthOnlyPass.Setup(baseDescriptor, DepthTexture, SampleCount.One);
@@ -158,11 +163,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
             renderer.EnqueuePass(m_SetupLightweightConstants);
-
-            foreach (var pass in m_BeforeRenderPasses)
-            {
-                renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, colorHandle, depthHandle, clearFlag));
-            }
 
             // If a before all render pass executed we expect it to clear the color render target
             if (m_BeforeRenderPasses.Count != 0)
